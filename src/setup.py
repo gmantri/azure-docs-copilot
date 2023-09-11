@@ -1,6 +1,5 @@
 import os
 import shutil
-import sys
 
 from dotenv import load_dotenv
 from langchain.docstore.document import Document
@@ -14,7 +13,6 @@ load_dotenv()
 
 # set path of chroma db
 CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH")
-
 continue_with_setup = True
 if os.path.exists(CHROMA_DB_PATH) and os.path.isdir(CHROMA_DB_PATH):
     input_prompt = """
@@ -54,14 +52,18 @@ chroma_db = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embeddin
 markdown_splitter = MarkdownHeaderTextSplitter([("#", "h1"), ("##", "h2")])
 for file in files:
     with open(file) as f:
-        documents_for_vector_store = []
-        file_contents = f.read()
-        file_chunks = markdown_splitter.split_text(file_contents)
-        for file_chunk in file_chunks:
-            d = Document(page_content=file_chunk.page_content, metadata={"source": file})
-            documents_for_vector_store.append(d)
-        chroma_db.add_documents(documents_for_vector_store)
-        message = f"file: {file} added to vector store."
-        print(message)
+        try:
+            documents_for_vector_store = []
+            file_contents = f.read()
+            file_chunks = markdown_splitter.split_text(file_contents)
+            for file_chunk in file_chunks:
+                d = Document(page_content=file_chunk.page_content, metadata={"source": file})
+                documents_for_vector_store.append(d)
+            chroma_db.add_documents(documents_for_vector_store)
+            message = f"file: {file} added to vector store."
+            print(message)
+        except Exception:
+            print(f"error occurred while processing {file} file.")
+            print(Exception)
 
 print(f"{len(files)} files added to vector store")
